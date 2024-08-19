@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	routers "gin-sample/routers"
 	"log"
 
@@ -11,7 +10,7 @@ import (
 
 func main() {
 
-	// 接続文字列
+	// TODO:接続文字列
 	connStr := "host=localhost port=5432 user=myuser password=mypassword dbname=mydb sslmode=disable"
 
 	// データベースに接続
@@ -27,7 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println("データベースに正常に接続されました")
+	log.Println("データベースに正常に接続されました")
 
 	router := routers.InitRouter(db)
 	router.Run(":8080")

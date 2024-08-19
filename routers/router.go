@@ -2,12 +2,16 @@ package routers
 
 import (
 	"database/sql"
-	"fmt"
-	member "gin-sample/models"
+	member_controller "gin-sample/controllers"
 	"net/http"
-	"strconv"
+
+	"gin-sample/middleware"
 
 	"github.com/gin-gonic/gin"
+
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func InitRouter(db *sql.DB) *gin.Engine {
@@ -19,67 +23,43 @@ func InitRouter(db *sql.DB) *gin.Engine {
 		})
 	})
 
-	r.POST("/members", func(c *gin.Context) {
-		member := member.Member{
-			Name: c.PostForm("name"),
-			Age:  convertToInt(c.PostForm("age")),
-			Sex:  member.Sex(c.PostForm("sex")),
-		}
+	r.POST("/login", func(c *gin.Context) {
+		username := c.PostForm("username")
+		password := c.PostForm("password")
 
-		err := member.AddMember(db)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "メンバーの作成に失敗しました",
+		// ここでユーザー認証を行う（例：データベースでチェック）
+		if username == "admin" && password == "password" {
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"user_id": 1,
+				"exp":     time.Now().Add(time.Hour * 24).Unix(),
 			})
-			return
-		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "メンバーが作成されました",
-		})
+			tokenString, err := token.SignedString([]byte("your_secret_key"))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "トークンの生成に失敗しました"})
+				return
+			}
+
+			c.JSON(http.StatusOK, gin.H{"token": tokenString})
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "認証に失敗しました"})
+		}
 	})
 
-	r.GET("/members", func(c *gin.Context) {
+	protected := r.Group("/api")
+	// TODO: 本番環境では環境変数から取得する
+	protected.Use(middleware.AuthMiddleware("your_secret_key"))
 
-		members, err := member.GetMembers(db)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "メンバーの取得に失敗しました",
-			})
-			fmt.Println(err)
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"members": members,
-		})
+	protected.POST("/members", func(c *gin.Context) {
+		member_controller.AddMember(c, db)
 	})
 
-	r.GET("/members/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		index, err := strconv.Atoi(id)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Invalid ID",
-			})
-			return
-		}
-		member, err := member.GetMemberById(db, index)
+	protected.GET("/members", func(c *gin.Context) {
+		member_controller.GetMembers(c, db)
+	})
 
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "Member not found",
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"member": member,
-		})
+	protected.GET("/members/:id", func(c *gin.Context) {
+		member_controller.GetMemberById(c, db)
 	})
 	return r
-}
-
-func convertToInt(s string) int {
-	i, _ := strconv.Atoi(s)
-	return i
 }
