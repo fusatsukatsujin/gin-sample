@@ -1,5 +1,7 @@
 package member
 
+import "database/sql"
+
 type Member struct {
 	Name string
 	Age  int
@@ -28,4 +30,9 @@ func NewMember(name string, age int, sex Sex) *Member {
 		Age:  age,
 		Sex:  sex,
 	}
+}
+
+func (m *Member) AddMember(db *sql.DB) error {
+	_, err := db.Exec("INSERT INTO members (name, age, sex) VALUES ($1, $2, $3)", m.Name, m.Age, m.Sex)
+	return err
 }
