@@ -3,6 +3,7 @@ package routers
 import (
 	"database/sql"
 	member_controller "gin-sample/controllers"
+	"gin-sample/pkg/setting"
 	"net/http"
 
 	"gin-sample/middleware"
@@ -27,14 +28,14 @@ func InitRouter(db *sql.DB) *gin.Engine {
 		username := c.PostForm("username")
 		password := c.PostForm("password")
 
-		// ここでユーザー認証を行う（例：データベースでチェック）
+		// TODO:ここでユーザー認証を行う（例：データベースでチェック）
 		if username == "admin" && password == "password" {
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 				"user_id": 1,
 				"exp":     time.Now().Add(time.Hour * 24).Unix(),
 			})
 
-			tokenString, err := token.SignedString([]byte("your_secret_key"))
+			tokenString, err := token.SignedString([]byte(setting.AppSetting.JwtSecret))
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "トークンの生成に失敗しました"})
 				return
@@ -48,7 +49,7 @@ func InitRouter(db *sql.DB) *gin.Engine {
 
 	protected := r.Group("/api")
 	// TODO: 本番環境では環境変数から取得する
-	protected.Use(middleware.AuthMiddleware("your_secret_key"))
+	protected.Use(middleware.AuthMiddleware(setting.AppSetting.JwtSecret))
 
 	protected.POST("/members", func(c *gin.Context) {
 		member_controller.AddMember(c, db)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"gin-sample/pkg/setting"
 	routers "gin-sample/routers"
 	"log"
 
@@ -10,8 +11,10 @@ import (
 
 func main() {
 
+	setting.Setup()
+
 	// TODO:接続文字列
-	connStr := "host=localhost port=5432 user=myuser password=mypassword dbname=mydb sslmode=disable"
+	connStr := "host=db port=5432 user=myuser password=mypassword dbname=mydb sslmode=disable"
 
 	// データベースに接続
 	db, err := sql.Open("postgres", connStr)

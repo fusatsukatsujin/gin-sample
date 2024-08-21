@@ -11,8 +11,8 @@
 
 ## 必要条件
 
-- Go 1.20以上
-- PostgreSQL 12以上
+- Go 1.22.4以上
+- PostgreSQL 13以上
 
 ## セットアップ
 
@@ -26,21 +26,14 @@
    go mod tidy
    ```
 
-3. PostgreSQLデータベースを設定します。
+3. アプリケーションとDBを起動します。
+```
+docker compose up -d
+```
 
-4. `.env`ファイルを作成し、以下の環境変数を設定します：
-   ```
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_USER=yourusername
-   DB_PASSWORD=yourpassword
-   DB_NAME=membersdb
-   ```
-
-5. アプリケーションを実行します：
-   ```
-   go run main.go
-   ```
+4. DBにテーブルを作成します。
+以下のDDLを流してください。
+docs/db/create.sql
 
 ## API エンドポイント
 
@@ -50,7 +43,7 @@
 - `GET /api/members/:id`: メンバーを検索
 
 ログイン以外のエンドポイントには、認証が必要です。
-`Authorization`ヘッダーにJWTトークンを含める必要があります。
+`Authorization`ヘッダーに`/login`で発行されたJWTトークンを含める必要があります。
 
 ## 使用例
 

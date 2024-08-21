@@ -2,7 +2,6 @@ package member_controller
 
 import (
 	"database/sql"
-	"fmt"
 	member "gin-sample/models"
 	"net/http"
 	"strconv"
@@ -16,7 +15,6 @@ func GetMembers(c *gin.Context, db *sql.DB) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "メンバーの取得に失敗しました",
 		})
-		fmt.Println(err)
 		return
 	}
 
