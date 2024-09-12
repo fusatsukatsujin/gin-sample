@@ -2,7 +2,7 @@ package routers
 
 import (
 	"database/sql"
-	member_controller "gin-sample/controllers"
+	"gin-sample/controllers"
 	"gin-sample/pkg/setting"
 	"net/http"
 
@@ -52,15 +52,15 @@ func InitRouter(db *sql.DB) *gin.Engine {
 	protected.Use(middleware.AuthMiddleware(setting.AppSetting.JwtSecret))
 
 	protected.POST("/members", func(c *gin.Context) {
-		member_controller.AddMember(c, db)
+		controllers.AddMember(c, db)
 	})
 
 	protected.GET("/members", func(c *gin.Context) {
-		member_controller.GetMembers(c, db)
+		controllers.GetMembers(c, db)
 	})
 
 	protected.GET("/members/:id", func(c *gin.Context) {
-		member_controller.GetMemberById(c, db)
+		controllers.GetMemberById(c, db)
 	})
 	return r
 }

@@ -1,4 +1,4 @@
-package member_controller
+package controllers
 
 import (
 	"database/sql"
