@@ -10,7 +10,7 @@ import (
 func TestNewMember(t *testing.T) {
 	member := NewMember("田中太郎", 30, Male)
 	assert.Equal(t, "田中太郎", member.Name)
-	assert.Equal(t, 31, member.Age)
+	assert.Equal(t, 30, member.Age)
 	assert.Equal(t, Male, member.Sex)
 }
 
