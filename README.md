@@ -49,7 +49,7 @@ docs/db/create.sql
 
 ログイン：
 ```
-curl -X POST http://localhost:8080/api/login \
+curl -X POST http://localhost:8080/login \
 -d "username=admin" \
 -d "password=password"
 ```
