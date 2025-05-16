@@ -39,7 +39,7 @@ func GetMembers(db *sql.DB) ([]Member, error) {
 	}
 	defer rows.Close()
 
-	var members []Member
+	members := make([]Member, 0)
 	for rows.Next() {
 		var member Member
 		err := rows.Scan(&member.Name, &member.Age, &member.Sex)
