@@ -62,3 +62,5 @@ curl -X POST http://localhost:8080/api/members \
      -d "age=25" \
      -d "sex=male"
 ```
+
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/fusatsukatsujin/gin-sample?utm_source=oss&utm_medium=github&utm_campaign=fusatsukatsujin%2Fgin-sample&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
