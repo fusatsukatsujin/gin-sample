@@ -38,7 +38,7 @@ func setupTestServer(t *testing.T) *testServer {
 	}
 }
 
-func TestGetUsers(t *testing.T) {
+func TestGetMembers(t *testing.T) {
 	ts := setupTestServer(t)
 	defer ts.db.Close()
 
@@ -70,7 +70,7 @@ func TestGetUsers(t *testing.T) {
 	assert.Equal(t, expectedResponse, w.Body.String())
 }
 
-func TestGetUsersEmpty(t *testing.T) {
+func TestGetMembersEmpty(t *testing.T) {
 	ts := setupTestServer(t)
 	defer ts.db.Close()
 
@@ -83,4 +83,19 @@ func TestGetUsersEmpty(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "{\"members\":[]}", w.Body.String())
+}
+
+func TestGetMembersDBError(t *testing.T) {
+	ts := setupTestServer(t)
+	defer ts.db.Close()
+
+	// データベースエラーをシミュレート
+	ts.mock.ExpectQuery("SELECT name, age, sex FROM members").
+		WillReturnError(sql.ErrConnDone)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/members", nil)
+	ts.router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
