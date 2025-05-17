@@ -56,15 +56,10 @@ func TestGetMembers(t *testing.T) {
 	ts.router.ServeHTTP(w, req)
 
 	// レスポンスの検証
-	if w.Code != http.StatusOK {
-		t.Errorf("期待したステータスコード %d, 実際は %d", http.StatusOK, w.Code)
-		t.Errorf("エラーレスポンス: %s", w.Body.String())
-	}
+	assert.Equal(t, http.StatusOK, w.Code)
 
 	// モックの期待値が満たされたか確認
-	if err := ts.mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("未実行のモックが存在します: %s", err)
-	}
+	assert.NoError(t, ts.mock.ExpectationsWereMet(), "未実行のモックが存在します")
 
 	expectedResponse := `{"members":[{"Name":"テスト太郎","Age":20,"Sex":"male"},{"Name":"テスト花子","Age":25,"Sex":"female"}]}`
 	assert.Equal(t, expectedResponse, w.Body.String())
@@ -98,4 +93,6 @@ func TestGetMembersDBError(t *testing.T) {
 	ts.router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	// エラーレスポンスの内容も検証
+	assert.Contains(t, w.Body.String(), "メンバーの取得に失敗しました")
 }
