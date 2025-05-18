@@ -65,3 +65,9 @@ func (m *Member) AddMember(db *sql.DB) error {
 	_, err := db.Exec("INSERT INTO members (name, age, sex) VALUES ($1, $2, $3)", m.Name, m.Age, m.Sex)
 	return err
 }
+
+// TODO:モデル層でトランザクションを管理するのは適切ではない
+func (m *Member) AddMemberWithTx(tx *sql.Tx) error {
+	_, err := tx.Exec("INSERT INTO members (name, age, sex) VALUES ($1, $2, $3)", m.Name, m.Age, m.Sex)
+	return err
+}

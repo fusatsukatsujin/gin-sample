@@ -46,23 +46,26 @@ func GetMemberById(c *gin.Context, db *sql.DB) {
 }
 
 func AddMember(c *gin.Context, db *sql.DB) {
+	// TODO: トランザクション制御はサービス層に委譲する
+	tx, exists := c.Get("tx")
+	if !exists {
+		c.JSON(500, gin.H{"error": "トランザクションが見つかりません"})
+		return
+	}
+
 	member := member.Member{
 		Name: c.PostForm("name"),
 		Age:  convertToInt(c.PostForm("age")),
 		Sex:  member.Sex(c.PostForm("sex")),
 	}
 
-	err := member.AddMember(db)
+	err := member.AddMemberWithTx(tx.(*sql.Tx))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "メンバーの作成に失敗しました",
-		})
+		c.JSON(500, gin.H{"error": "メンバーの作成に失敗しました"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "メンバーが作成されました",
-	})
+	c.JSON(200, gin.H{"message": "メンバーが作成されました"})
 }
 
 func convertToInt(s string) int {
