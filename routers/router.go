@@ -2,8 +2,8 @@ package routers
 
 import (
 	"database/sql"
-	"gin-sample/controllers"
 	"gin-sample/pkg/setting"
+	controllers "gin-sample/routers/api/v1"
 	"net/http"
 
 	"gin-sample/middleware"
