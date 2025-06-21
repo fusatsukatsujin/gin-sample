@@ -2,6 +2,10 @@ package member
 
 import "database/sql"
 
+type Execer interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
 type Member struct {
 	Name string
 	Age  int
@@ -61,7 +65,7 @@ func GetMemberById(db *sql.DB, id int) (*Member, error) {
 	return &member, nil
 }
 
-func (m *Member) AddMember(db *sql.DB) error {
-	_, err := db.Exec("INSERT INTO members (name, age, sex) VALUES ($1, $2, $3)", m.Name, m.Age, m.Sex)
+func (m *Member) AddMember(execer Execer) error {
+	_, err := execer.Exec("INSERT INTO members (name, age, sex) VALUES ($1, $2, $3)", m.Name, m.Age, m.Sex)
 	return err
 }

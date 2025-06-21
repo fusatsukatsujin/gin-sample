@@ -29,12 +29,18 @@ func setupPublicRoutes(r *gin.Engine, db *sql.DB) {
 
 func setupProtectedRoutes(r *gin.Engine, db *sql.DB) {
 	protected := r.Group("/api")
-	// TODO: 本番環境では環境変数から取得する
 	protected.Use(middleware.AuthMiddleware(setting.AppSetting.JwtSecret))
 
-	protected.POST("/members", func(c *gin.Context) {
+	// トランザクション管理が必要なエンドポイントのグループ
+	txGroup := protected.Group("")
+	tm := middleware.NewTransactionManager(db)
+	txGroup.Use(tm.HandleTransaction())
+
+	txGroup.POST("/members", func(c *gin.Context) {
 		controllers.AddMember(c, db)
 	})
+
+	// トランザクション不要なエンドポイント
 	protected.GET("/members", func(c *gin.Context) {
 		controllers.GetMembers(c, db)
 	})
