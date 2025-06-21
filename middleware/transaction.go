@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"database/sql"
+	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,7 +20,7 @@ func (tm *TransactionManager) HandleTransaction() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tx, err := tm.db.Begin()
 		if err != nil {
-			c.JSON(500, gin.H{"error": "トランザクションの開始に失敗しました"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "トランザクションの開始に失敗しました"})
 			c.Abort()
 			return
 		}
@@ -29,7 +31,9 @@ func (tm *TransactionManager) HandleTransaction() gin.HandlerFunc {
 		// パニックをキャッチしてロールバック
 		defer func() {
 			if r := recover(); r != nil {
-				tx.Rollback()
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					log.Printf("Rollback error during panic: %v", rollbackErr)
+				}
 				panic(r) // パニックを再スロー
 			}
 		}()
@@ -38,11 +42,15 @@ func (tm *TransactionManager) HandleTransaction() gin.HandlerFunc {
 
 		// レスポンスのステータスコードを確認
 		if c.Writer.Status() >= 400 {
-			tx.Rollback()
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Printf("Rollback error on status >= 400: %v", rollbackErr)
+			}
 		} else {
 			if err := tx.Commit(); err != nil {
-				tx.Rollback()
-				c.JSON(500, gin.H{"error": "トランザクションのコミットに失敗しました"})
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					log.Printf("Rollback error after commit failure: %v", rollbackErr)
+				}
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "トランザクションのコミットに失敗しました"})
 			}
 		}
 	}

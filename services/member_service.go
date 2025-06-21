@@ -33,10 +33,5 @@ func (s *MemberService) AddMemberWithTransaction(tx *sql.Tx, name string, age in
 	}
 	
 	m := member.NewMember(name, age, sex)
-	return m.AddMemberWithTx(tx)
-}
-
-func (s *MemberService) AddMemberWithTx(tx *sql.Tx, name string, age int, sex member.Sex) error {
-	m := member.NewMember(name, age, sex)
-	return m.AddMemberWithTx(tx)
+	return m.AddMember(tx)
 }
