@@ -3,6 +3,7 @@ package controllers
 import (
 	"database/sql"
 	member "gin-sample/models"
+	"gin-sample/services"
 	"net/http"
 	"strconv"
 
@@ -10,7 +11,8 @@ import (
 )
 
 func GetMembers(c *gin.Context, db *sql.DB) {
-	members, err := member.GetMembers(db)
+	memberService := services.NewMemberService(db)
+	members, err := memberService.GetMembers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "メンバーの取得に失敗しました",
@@ -32,7 +34,8 @@ func GetMemberById(c *gin.Context, db *sql.DB) {
 		})
 		return
 	}
-	member, err := member.GetMemberById(db, index)
+	memberService := services.NewMemberService(db)
+	member, err := memberService.GetMemberById(index)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -46,26 +49,25 @@ func GetMemberById(c *gin.Context, db *sql.DB) {
 }
 
 func AddMember(c *gin.Context, db *sql.DB) {
-	// TODO: トランザクション制御はサービス層に委譲する
 	tx, exists := c.Get("tx")
-	if !exists {
-		c.JSON(500, gin.H{"error": "トランザクションが見つかりません"})
-		return
+	var txPtr *sql.Tx
+	if exists {
+		txPtr = tx.(*sql.Tx)
 	}
 
-	member := member.Member{
-		Name: c.PostForm("name"),
-		Age:  convertToInt(c.PostForm("age")),
-		Sex:  member.Sex(c.PostForm("sex")),
-	}
-
-	err := member.AddMemberWithTx(tx.(*sql.Tx))
+	memberService := services.NewMemberService(db)
+	err := memberService.AddMemberWithTransaction(
+		txPtr,
+		c.PostForm("name"),
+		convertToInt(c.PostForm("age")),
+		member.Sex(c.PostForm("sex")),
+	)
 	if err != nil {
-		c.JSON(500, gin.H{"error": "メンバーの作成に失敗しました"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "メンバーが作成されました"})
+	c.JSON(http.StatusOK, gin.H{"message": "メンバーが作成されました"})
 }
 
 func convertToInt(s string) int {
